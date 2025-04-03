@@ -12,6 +12,7 @@ body {
     padding-left: 20px;
 }
 h1 { color: #2c3e50; text-align: center; }
+h2, h3 { color: #2c3e50; margin-bottom: 15px; }
 .card {
     background: #fff;
     padding: 20px;
@@ -31,7 +32,7 @@ th, td {
     text-align: left;
 }
 th {
-    background  background: #3498db;
+    background: #3498db; /* Fixed typo from previous version */
     color: #fff;
     font-weight: 600;
 }
