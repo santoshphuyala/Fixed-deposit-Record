@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interest Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <div class="drawer">
+        <button class="drawer-toggle">☰</button>
+        <nav class="drawer-menu">
+            <a href="index.html">FD Records</a>
+            <a href="interest.html">Interest Calculator</a>
+            <a href="index.html#summary">Portfolio Summary</a>
+            <a href="index.html#charts">Charts</a>
+            <a href="#" id="backupBtn">Backup Data</a>
+            <a href="#" id="restoreBtn">Restore Data</a>
+        </nav>
+    </div>
+    <div class="container">
+        <h1>Interest Calculator</h1>
+        <div class="card interest-section">
+            <h2>Calculate Interest</h2>
+            <div class="form-group">
+                <label>Select FD: <select id="fdRecordSelect"></select></label>
+                <label>Bank Name: <input type="text" id="interestBankName" readonly></label>
+                <label>Amount: <input type="number" id="interestAmount" readonly></label>
+                <label>Period:
+                    <select id="interestCalculationPeriod">
+                        <option value="whole">Whole FD Period</option>
+                        <option value="custom">Custom Date Range</option>
+                        <option value="fullCustom">Full Custom Input</option>
+                    </select></label>
+                <label>Interest Type:
+                    <select id="interestType">
+                        <option value="simple">Simple</option>
+                        <option value="compound">Compound</option>
+                    </select></label>
+                <label>Frequency:
+                    <select id="interestFrequency">
+                        <option value="atMaturity">At Maturity</option>
+                        <option value="daily">Daily</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                        <option value="annually">Annually</option>
+                    </select></label>
+                <label class="hidden" id="customInterestAmountLabel">Amount: <input type="number" id="customInterestAmount" min="0" step="0.01"></label>
+                <label class="hidden" id="customInterestRateLabel">Rate (%): <input type="number" id="customInterestRate" min="0" step="0.1"></label>
+                <label class="hidden" id="customInterestDurationLabel">Duration: <input type="number" id="customInterestDuration" min="1"></label>
+                <label class="hidden" id="customInterestDurationUnitLabel">
+                    <select id="customInterestDurationUnit">
+                        <option value="Days">Days</option>
+                        <option value="Months">Months</option>
+                        <option value="Years">Years</option>
+                    </select></label>
+                <label class="hidden">From Date: <input type="date" id="interestFromDate"></label>
+                <label class="hidden">To Date: <input type="date" id="interestToDate"></label>
+                <button id="calculateInterestBtn">Calculate</button>
+                <p>Calculated Interest: <span id="calculatedInterest">0</span></p>
+            </div>
+        </div>
+        <div class="card saved-interest-section">
+            <h2>Saved Interest Records</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Holder</th><th>Bank</th><th>Amount</th><th>Rate</th><th>Type</th><th>Frequency</th><th>Start</th><th>End</th><th>Period</th><th>Interest</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="savedInterestList"></tbody>
+            </table>
+            <button id="clearAllSavedInterestBtn">Clear All</button>
+            <button id="exportSavedInterestToPDFBtn">Export PDF</button>
+            <button id="exportSavedInterestToExcelBtn">Export Excel</button>
+        </div>
+    </div>
+    <footer>Designed by Santosh Phuyal</footer>
+    <script src="scripts.js"></script>
+</body>
+</html>
