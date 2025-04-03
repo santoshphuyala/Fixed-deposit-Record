@@ -1,5 +1,7 @@
 const ENCRYPTION_KEY = 'FDRecordSecretKey';
 
+console.log('scripts.js loaded at:', new Date()); // Debug log to confirm loading
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     setupDrawer();
@@ -18,13 +20,15 @@ function decryptData(encryptedData) {
 }
 
 function initializeApp() {
+    console.log('Initializing app...'); // Debug log
     const today = new Date().toISOString().split('T')[0];
     if (document.getElementById('fdStartDate')) document.getElementById('fdStartDate').setAttribute('max', today);
     loadAccountHolders();
 
-    // Event listeners for index.html
     if (document.getElementById('addAccountHolderBtn')) {
-        document.getElementById('addAccountHolderBtn').addEventListener('click', addAccountHolder);
+        const addBtn = document.getElementById('addAccountHolderBtn');
+        addBtn.addEventListener('click', addAccountHolder);
+        console.log('Add Account Holder button listener added'); // Debug log
         document.getElementById('saveRecordBtn').addEventListener('click', saveRecord);
         document.getElementById('clearAllRecordsBtn').addEventListener('click', clearAllRecords);
         document.getElementById('exportToPDFBtn').addEventListener('click', exportToPDF);
@@ -43,7 +47,6 @@ function initializeApp() {
         });
     }
 
-    // Event listeners for interest.html
     if (document.getElementById('calculateInterestBtn')) {
         document.getElementById('calculateInterestBtn').addEventListener('click', calculateAndDisplayInterest);
         document.getElementById('clearAllSavedInterestBtn').addEventListener('click', clearAllSavedInterest);
@@ -51,14 +54,19 @@ function initializeApp() {
         document.getElementById('exportSavedInterestToExcelBtn').addEventListener('click', exportSavedInterestToExcel);
         document.getElementById('fdRecordSelect').addEventListener('change', updateInterestFields);
         document.getElementById('interestCalculationPeriod').addEventListener('change', toggleCustomFields);
+        document.getElementById('accountHolderSelect').addEventListener('change', loadAccountRecords);
         loadSavedInterest();
     }
 
     document.getElementById('backupBtn').addEventListener('click', backupAllData);
     document.getElementById('restoreBtn').addEventListener('click', restoreData);
+    document.getElementById('interestLink').addEventListener('click', () => {
+        const selectedHolder = document.getElementById('accountHolderSelect')?.value;
+        if (selectedHolder) localStorage.setItem('selectedHolder', selectedHolder);
+    });
     setInterval(() => {
-        const accountHolderName = document.getElementById('accountHolderSelect')?.value;
-        if (accountHolderName) loadAccountRecords();
+        const name = document.getElementById('accountHolderSelect')?.value;
+        if (name) loadAccountRecords();
     }, 86400000);
 }
 
@@ -120,7 +128,7 @@ function calculateInterest(amount, interestRate, duration, unit, interestType = 
             const periods = Math.floor(years * n);
             interest = 0;
             let balance = principal;
-            const reinvest = confirm('For compound interest with periodic payments, do you want to reinvest the interest? (Yes = Reinvest, No = Withdraw)');
+            const reinvest = confirm('For compound interest with periodic payments, reinvest interest? (Yes = Reinvest, No = Withdraw)');
             for (let i = 0; i < periods; i++) {
                 const periodInterest = balance * (rate / n);
                 interest += periodInterest;
@@ -150,12 +158,13 @@ function loadAccountHolders() {
         option.value = option.textContent = holder;
         select.appendChild(option);
     });
-    if (holders.length) {
-        select.value = holders[0];
+    const selectedHolder = localStorage.getItem('selectedHolder') || (holders.length ? holders[0] : null);
+    if (selectedHolder) {
+        select.value = selectedHolder;
         loadAccountRecords();
     } else {
-        document.getElementById('accountHolderNameDisplay').textContent = "No Account Holder Selected";
-        document.getElementById('records').innerHTML = '';
+        if (document.getElementById('accountHolderNameDisplay')) document.getElementById('accountHolderNameDisplay').textContent = "No Account Holder Selected";
+        document.getElementById('records')?.innerHTML = '';
         if (document.getElementById('fdRecordSelect')) document.getElementById('fdRecordSelect').innerHTML = '';
     }
     updateBankSuggestions();
@@ -164,6 +173,7 @@ function loadAccountHolders() {
 function addAccountHolder() {
     const input = document.getElementById('newAccountHolder');
     const name = input.value.trim();
+    console.log('Adding account holder:', name); // Debug log
     if (!name) return alert("Please enter a valid name.");
     const holders = getAccountHolders();
     if (!holders.includes(name)) {
@@ -178,7 +188,7 @@ function addAccountHolder() {
 function loadAccountRecords() {
     const name = document.getElementById('accountHolderSelect')?.value;
     if (!name) return;
-    document.getElementById('accountHolderNameDisplay').textContent = name;
+    if (document.getElementById('accountHolderNameDisplay')) document.getElementById('accountHolderNameDisplay').textContent = name;
     let records = getAccountRecords(name).map(record => ({
         ...record,
         fdRenewalDaysRemaining: calculateRenewalDaysRemaining(record.fdMaturityDate)
