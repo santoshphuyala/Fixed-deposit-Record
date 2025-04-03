@@ -22,7 +22,6 @@ function initializeApp() {
     if (document.getElementById('fdStartDate')) document.getElementById('fdStartDate').setAttribute('max', today);
     loadAccountHolders();
 
-    // Event listeners for index.html
     if (document.getElementById('addAccountHolderBtn')) {
         document.getElementById('addAccountHolderBtn').addEventListener('click', addAccountHolder);
         document.getElementById('saveRecordBtn').addEventListener('click', saveRecord);
@@ -43,7 +42,6 @@ function initializeApp() {
         });
     }
 
-    // Event listeners for interest.html
     if (document.getElementById('calculateInterestBtn')) {
         document.getElementById('calculateInterestBtn').addEventListener('click', calculateAndDisplayInterest);
         document.getElementById('clearAllSavedInterestBtn').addEventListener('click', clearAllSavedInterest);
@@ -51,14 +49,19 @@ function initializeApp() {
         document.getElementById('exportSavedInterestToExcelBtn').addEventListener('click', exportSavedInterestToExcel);
         document.getElementById('fdRecordSelect').addEventListener('change', updateInterestFields);
         document.getElementById('interestCalculationPeriod').addEventListener('change', toggleCustomFields);
+        document.getElementById('accountHolderSelect').addEventListener('change', loadAccountRecords);
         loadSavedInterest();
     }
 
     document.getElementById('backupBtn').addEventListener('click', backupAllData);
     document.getElementById('restoreBtn').addEventListener('click', restoreData);
+    document.getElementById('interestLink').addEventListener('click', () => {
+        const selectedHolder = document.getElementById('accountHolderSelect')?.value;
+        if (selectedHolder) localStorage.setItem('selectedHolder', selectedHolder);
+    });
     setInterval(() => {
-        const accountHolderName = document.getElementById('accountHolderSelect')?.value;
-        if (accountHolderName) loadAccountRecords();
+        const name = document.getElementById('accountHolderSelect')?.value;
+        if (name) loadAccountRecords();
     }, 86400000);
 }
 
@@ -120,7 +123,7 @@ function calculateInterest(amount, interestRate, duration, unit, interestType = 
             const periods = Math.floor(years * n);
             interest = 0;
             let balance = principal;
-            const reinvest = confirm('For compound interest with periodic payments, do you want to reinvest the interest? (Yes = Reinvest, No = Withdraw)');
+            const reinvest = confirm('For compound interest with periodic payments, reinvest interest? (Yes = Reinvest, No = Withdraw)');
             for (let i = 0; i < periods; i++) {
                 const periodInterest = balance * (rate / n);
                 interest += periodInterest;
@@ -150,12 +153,13 @@ function loadAccountHolders() {
         option.value = option.textContent = holder;
         select.appendChild(option);
     });
-    if (holders.length) {
-        select.value = holders[0];
+    const selectedHolder = localStorage.getItem('selectedHolder') || (holders.length ? holders[0] : null);
+    if (selectedHolder) {
+        select.value = selectedHolder;
         loadAccountRecords();
     } else {
-        document.getElementById('accountHolderNameDisplay').textContent = "No Account Holder Selected";
-        document.getElementById('records').innerHTML = '';
+        if (document.getElementById('accountHolderNameDisplay')) document.getElementById('accountHolderNameDisplay').textContent = "No Account Holder Selected";
+        document.getElementById('records')?.innerHTML = '';
         if (document.getElementById('fdRecordSelect')) document.getElementById('fdRecordSelect').innerHTML = '';
     }
     updateBankSuggestions();
@@ -178,7 +182,7 @@ function addAccountHolder() {
 function loadAccountRecords() {
     const name = document.getElementById('accountHolderSelect')?.value;
     if (!name) return;
-    document.getElementById('accountHolderNameDisplay').textContent = name;
+    if (document.getElementById('accountHolderNameDisplay')) document.getElementById('accountHolderNameDisplay').textContent = name;
     let records = getAccountRecords(name).map(record => ({
         ...record,
         fdRenewalDaysRemaining: calculateRenewalDaysRemaining(record.fdMaturityDate)
@@ -214,7 +218,7 @@ function saveRecord() {
     clearInputs();
 }
 
-function editRecord(accountHolderName, index) {
+function editRecord(accountHolderName, index LE) {
     if (confirm("Edit this record?")) {
         const records = getAccountRecords(accountHolderName);
         const record = records[index];
