@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FD Records</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <div class="drawer">
+        <button class="drawer-toggle">☰</button>
+        <nav class="drawer-menu">
+            <a href="index.html">FD Records</a>
+            <a href="interest.html">Interest Calculator</a>
+            <a href="#summary">Portfolio Summary</a>
+            <a href="#charts">Charts</a>
+            <a href="#" id="backupBtn">Backup Data</a>
+            <a href="#" id="restoreBtn">Restore Data</a>
+        </nav>
+    </div>
+    <div class="container">
+        <h1>Fixed Deposit Records</h1>
+        <div class="card">
+            <div class="form-group">
+                <label>Account Holder:
+                    <select id="accountHolderSelect"></select>
+                    <input type="text" id="newAccountHolder" placeholder="New Account Holder">
+                    <button id="addAccountHolderBtn">Add</button>
+                </label>
+            </div>
+            <h2><span id="accountHolderNameDisplay"></span></h2>
+            <div class="form-group">
+                <label>Search: <input type="text" id="searchInput" placeholder="Search by Bank or Amount"></label>
+                <button id="bulkDeleteBtn">Delete Selected</button>
+                <button id="bulkExportBtn">Export Selected</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll"></th>
+                        <th class="sortable" data-sort="bankName">Bank Name</th>
+                        <th class="sortable" data-sort="amount">Amount</th>
+                        <th class="sortable" data-sort="duration">Duration</th>
+                        <th>Unit</th>
+                        <th class="sortable" data-sort="interestRate">Interest Rate</th>
+                        <th class="sortable" data-sort="fdStartDate">Start Date</th>
+                        <th class="sortable" data-sort="fdMaturityDate">Maturity Date</th>
+                        <th class="sortable" data-sort="fdRenewalDaysRemaining">Days Remaining</th>
+                        <th class="sortable" data-sort="interest">Interest</th>
+                        <th class="sortable" data-sort="fdCertificate">Certificate</th>
+                        <th class="sortable" data-sort="status">Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="records"></tbody>
+            </table>
+            <div class="form-group">
+                <label>Bank Name: <input type="text" id="bankName" list="bankSuggestions">
+                    <datalist id="bankSuggestions"></datalist></label>
+                <label>Amount: <input type="number" id="amount" min="0" step="0.01"></label>
+                <label>Duration: <input type="number" id="duration" min="1">
+                    <select id="durationUnit">
+                        <option value="Days">Days</option>
+                        <option value="Months">Months</option>
+                        <option value="Years">Years</option>
+                    </select></label>
+                <label>Interest Rate (%): <input type="number" id="interestRate" min="0" step="0.1" value="5"></label>
+                <label>Start Date: <input type="date" id="fdStartDate" max=""></label>
+                <label>Certificate: <select id="fdCertificate">
+                    <option value="obtained">Obtained</option>
+                    <option value="not obtained">Not Obtained</option>
+                </select></label>
+                <input type="hidden" id="editIndex">
+                <button id="saveRecordBtn">Save</button>
+                <button id="clearAllRecordsBtn">Clear All</button>
+                <button id="exportToPDFBtn">Export PDF</button>
+                <button id="exportToExcelBtn">Export Excel</button>
+                <label>Import Excel: <input type="file" id="importExcelFile" accept=".xlsx, .xls"></label>
+                <button id="importExcelBtn">Import</button>
+                <p>Estimated Interest: <span id="interestPreview">0</span></p>
+            </div>
+        </div>
+        <div class="card calendar-section" id="calendar">
+            <h3>Upcoming Maturities</h3>
+            <ul class="calendar-list" id="maturityCalendar"></ul>
+        </div>
+        <div class="card summary-section" id="summary">
+            <h3>Portfolio Summary</h3>
+            <p>Total Investment: <span id="totalInvestment">0</span></p>
+            <p>Total Interest Expected: <span id="totalInterest">0</span></p>
+            <p>Active FDs: <span id="activeFDs">0</span></p>
+            <p>Matured FDs: <span id="maturedFDs">0</span></p>
+            <table class="summary-table">
+                <thead><tr><th>Bank Name</th><th>FDs</th><th>Total Amount</th></tr></thead>
+                <tbody id="bankBreakdown"></tbody>
+            </table>
+        </div>
+        <div class="card" id="charts">
+            <button id="generatePieChartBtn">Pie Chart</button>
+            <button id="generateBarChartBtn">Bar Chart</button>
+            <div id="chartContainer" class="hidden"><canvas id="portfolioChart"></canvas></div>
+        </div>
+    </div>
+    <footer>Designed by Santosh Phuyal</footer>
+    <script src="scripts.js"></script>
+</body>
+</html>
