@@ -15,7 +15,7 @@
         <button class="drawer-toggle">☰</button>
         <nav class="drawer-menu">
             <a href="index.html">FD Records</a>
-            <a href="interest.html">Interest Calculator</a>
+            <a href="interest.html" id="interestLink">Interest Calculator</a>
             <a href="index.html#summary">Portfolio Summary</a>
             <a href="index.html#charts">Charts</a>
             <a href="#" id="backupBtn">Backup Data</a>
@@ -25,6 +25,9 @@
     <div class="container">
         <h1>Interest Calculator</h1>
         <div class="card interest-section">
+            <div class="form-group">
+                <label>Account Holder: <select id="accountHolderSelect"></select></label>
+            </div>
             <h2>Calculate Interest</h2>
             <div class="form-group">
                 <label>Select FD: <select id="fdRecordSelect"></select></label>
