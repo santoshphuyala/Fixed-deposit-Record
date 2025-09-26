@@ -5,6 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FD Records</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Accessibility: ARIA live region for notifications -->
+    <style>
+        /* Responsive and accessibility improvements for demonstration */
+        body { font-family: Arial, sans-serif; margin: 0; }
+        .container { padding: 1rem; max-width: 1200px; margin: auto; }
+        .drawer, .drawer-menu { background: #f8f8f8; }
+        .drawer-toggle { font-size: 2rem; background: none; border: none; }
+        .card { margin: 1rem 0; padding: 1rem; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);}
+        @media (max-width: 600px) {
+            .container { padding: 0.5rem; }
+            table, th, td { font-size: 0.9rem; }
+            .drawer-menu { flex-direction: column; }
+        }
+        /* Toast notification styles */
+        #toast { position: fixed; bottom: 1rem; right: 1rem; background: #333; color: #fff; padding: 0.75rem 1.5rem; border-radius: 4px; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none;}
+        #toast.show { opacity: 1; pointer-events: auto;}
+        /* Mobile navigation */
+        .drawer-menu { display: flex; gap: 1rem; flex-wrap: wrap;}
+        @media (max-width: 600px) {
+            .drawer-menu { display: none; }
+            .drawer.open .drawer-menu { display: flex; flex-direction: column; }
+        }
+        /* Customisation panel */
+        .customize-panel { margin: 1rem 0; padding: 0.5rem 1rem; background: #e4f0ff; border-radius: 6px; }
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -12,37 +37,62 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
-    <div class="drawer">
-        <button class="drawer-toggle">☰</button>
-        <nav class="drawer-menu">
-            <a href="index.html">FD Records</a>
-            <a href="interest.html" id="interestLink">Interest Calculator</a>
-            <a href="#summary">Portfolio Summary</a>
-            <a href="#charts">Charts</a>
-            <a href="#" id="backupBtn">Backup Data</a>
-            <a href="#" id="restoreBtn">Restore Data</a>
+    <!-- ARIA live region for user feedback -->
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <div class="drawer" aria-label="Main Navigation">
+        <button class="drawer-toggle" aria-label="Open Navigation" tabindex="0">☰</button>
+        <nav class="drawer-menu" role="navigation">
+            <a href="index.html" aria-current="page" tabindex="0">FD Records</a>
+            <a href="interest.html" id="interestLink" tabindex="0">Interest Calculator</a>
+            <a href="#summary" tabindex="0">Portfolio Summary</a>
+            <a href="#charts" tabindex="0">Charts</a>
+            <a href="#" id="backupBtn" tabindex="0">Backup Data</a>
+            <a href="#" id="restoreBtn" tabindex="0">Restore Data</a>
         </nav>
     </div>
     <div class="container">
         <h1>Fixed Deposit Records</h1>
-        <div class="card">
+        <!-- Customization Panel -->
+        <div class="customize-panel" aria-label="Customization Options">
+            <h2>Customize Table</h2>
+            <fieldset>
+                <legend>Show/Hide Columns</legend>
+                <label><input type="checkbox" class="column-toggle" data-column="bankName" checked> Bank Name</label>
+                <label><input type="checkbox" class="column-toggle" data-column="amount" checked> Amount</label>
+                <label><input type="checkbox" class="column-toggle" data-column="duration" checked> Duration</label>
+                <label><input type="checkbox" class="column-toggle" data-column="interestRate" checked> Interest Rate</label>
+                <label><input type="checkbox" class="column-toggle" data-column="fdStartDate" checked> Start Date</label>
+                <label><input type="checkbox" class="column-toggle" data-column="fdMaturityDate" checked> Maturity Date</label>
+                <label><input type="checkbox" class="column-toggle" data-column="fdRenewalDaysRemaining" checked> Days Remaining</label>
+                <label><input type="checkbox" class="column-toggle" data-column="interest" checked> Interest</label>
+                <label><input type="checkbox" class="column-toggle" data-column="fdCertificate" checked> Certificate</label>
+                <label><input type="checkbox" class="column-toggle" data-column="status" checked> Status</label>
+            </fieldset>
+            <fieldset>
+                <legend>Export Format</legend>
+                <label><input type="radio" name="export-format" value="pdf" checked> PDF</label>
+                <label><input type="radio" name="export-format" value="excel"> Excel</label>
+            </fieldset>
+        </div>
+        <div class="card" aria-label="FD Record Form">
             <div class="form-group">
-                <label>Account Holder:
-                    <select id="accountHolderSelect"></select>
-                    <input type="text" id="newAccountHolder" placeholder="New Account Holder">
-                    <button id="addAccountHolderBtn">Add</button>
-                </label>
+                <label for="accountHolderSelect">Account Holder:</label>
+                <select id="accountHolderSelect" aria-label="Account Holder"></select>
+                <input type="text" id="newAccountHolder" placeholder="New Account Holder" aria-label="New Account Holder">
+                <button id="addAccountHolderBtn" aria-label="Add Account Holder">Add</button>
             </div>
-            <h2><span id="accountHolderNameDisplay"></span></h2>
+            <h2><span id="accountHolderNameDisplay" aria-live="polite"></span></h2>
             <div class="form-group">
-                <label>Search: <input type="text" id="searchInput" placeholder="Search by Bank or Amount"></label>
-                <button id="bulkDeleteBtn">Delete Selected</button>
-                <button id="bulkExportBtn">Export Selected</button>
+                <label for="searchInput">Search:</label>
+                <input type="text" id="searchInput" placeholder="Search by Bank or Amount" aria-label="Search FDs">
+                <button id="bulkDeleteBtn" aria-label="Delete Selected FDs">Delete Selected</button>
+                <button id="bulkExportBtn" aria-label="Export Selected FDs">Export Selected</button>
             </div>
-            <table>
+            <table aria-label="FD Records Table">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" id="selectAll"></th>
+                        <th><input type="checkbox" id="selectAll" aria-label="Select All Rows"></th>
                         <th class="sortable" data-sort="bankName">Bank Name</th>
                         <th class="sortable" data-sort="amount">Amount</th>
                         <th class="sortable" data-sort="duration">Duration</th>
@@ -60,53 +110,96 @@
                 <tbody id="records"></tbody>
             </table>
             <div class="form-group">
-                <label>Bank Name: <input type="text" id="bankName" list="bankSuggestions">
-                    <datalist id="bankSuggestions"></datalist></label>
-                <label>Amount: <input type="number" id="amount" min="0" step="0.01"></label>
-                <label>Duration: <input type="number" id="duration" min="1">
-                    <select id="durationUnit">
-                        <option value="Days">Days</option>
-                        <option value="Months">Months</option>
-                        <option value="Years">Years</option>
-                    </select></label>
-                <label>Interest Rate (%): <input type="number" id="interestRate" min="0" step="0.1" value="5"></label>
-                <label>Start Date: <input type="date" id="fdStartDate" max=""></label>
-                <label>Certificate: <select id="fdCertificate">
+                <label for="bankName">Bank Name:</label>
+                <input type="text" id="bankName" list="bankSuggestions" aria-label="Bank Name">
+                <datalist id="bankSuggestions"></datalist>
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" min="0" step="0.01" aria-label="Amount">
+                <label for="duration">Duration:</label>
+                <input type="number" id="duration" min="1" aria-label="Duration">
+                <select id="durationUnit" aria-label="Duration Unit">
+                    <option value="Days">Days</option>
+                    <option value="Months">Months</option>
+                    <option value="Years">Years</option>
+                </select>
+                <label for="interestRate">Interest Rate (%):</label>
+                <input type="number" id="interestRate" min="0" step="0.1" value="5" aria-label="Interest Rate">
+                <label for="fdStartDate">Start Date:</label>
+                <input type="date" id="fdStartDate" max="" aria-label="Start Date">
+                <label for="fdCertificate">Certificate:</label>
+                <select id="fdCertificate" aria-label="Certificate Status">
                     <option value="obtained">Obtained</option>
                     <option value="not obtained">Not Obtained</option>
-                </select></label>
+                </select>
                 <input type="hidden" id="editIndex">
-                <button id="saveRecordBtn">Save</button>
-                <button id="clearAllRecordsBtn">Clear All</button>
-                <button id="exportToPDFBtn">Export PDF</button>
-                <button id="exportToExcelBtn">Export Excel</button>
-                <label>Import Excel: <input type="file" id="importExcelFile" accept=".xlsx, .xls"></label>
-                <button id="importExcelBtn">Import</button>
-                <p>Estimated Interest: <span id="interestPreview">0</span></p>
+                <button id="saveRecordBtn" aria-label="Save FD Record">Save</button>
+                <button id="clearAllRecordsBtn" aria-label="Clear All Records">Clear All</button>
+                <button id="exportToPDFBtn" aria-label="Export to PDF">Export PDF</button>
+                <button id="exportToExcelBtn" aria-label="Export to Excel">Export Excel</button>
+                <label for="importExcelFile">Import Excel:</label>
+                <input type="file" id="importExcelFile" accept=".xlsx, .xls" aria-label="Import Excel">
+                <button id="importExcelBtn" aria-label="Import Excel">Import</button>
+                <p>Estimated Interest: <span id="interestPreview" aria-live="polite">0</span></p>
             </div>
         </div>
-        <div class="card calendar-section" id="calendar">
+        <div class="card calendar-section" id="calendar" aria-label="Upcoming Maturities">
             <h3>Upcoming Maturities</h3>
             <ul class="calendar-list" id="maturityCalendar"></ul>
         </div>
-        <div class="card summary-section" id="summary">
+        <div class="card summary-section" id="summary" aria-label="Portfolio Summary">
             <h3>Portfolio Summary</h3>
-            <p>Total Investment: <span id="totalInvestment">0</span></p>
-            <p>Total Interest Expected: <span id="totalInterest">0</span></p>
-            <p>Active FDs: <span id="activeFDs">0</span></p>
-            <p>Matured FDs: <span id="maturedFDs">0</span></p>
-            <table class="summary-table">
+            <p>Total Investment: <span id="totalInvestment" aria-live="polite">0</span></p>
+            <p>Total Interest Expected: <span id="totalInterest" aria-live="polite">0</span></p>
+            <p>Active FDs: <span id="activeFDs" aria-live="polite">0</span></p>
+            <p>Matured FDs: <span id="maturedFDs" aria-live="polite">0</span></p>
+            <table class="summary-table" aria-label="Bank Breakdown Table">
                 <thead><tr><th>Bank Name</th><th>FDs</th><th>Total Amount</th></tr></thead>
                 <tbody id="bankBreakdown"></tbody>
             </table>
         </div>
-        <div class="card" id="charts">
-            <button id="generatePieChartBtn">Pie Chart</button>
-            <button id="generateBarChartBtn">Bar Chart</button>
-            <div id="chartContainer" class="hidden"><canvas id="portfolioChart"></canvas></div>
+        <div class="card" id="charts" aria-label="Portfolio Charts">
+            <button id="generatePieChartBtn" aria-label="Generate Pie Chart">Pie Chart</button>
+            <button id="generateBarChartBtn" aria-label="Generate Bar Chart">Bar Chart</button>
+            <div id="chartContainer" class="hidden"><canvas id="portfolioChart" aria-label="Portfolio Chart"></canvas></div>
         </div>
     </div>
     <footer>Designed by Santosh Phuyal</footer>
-    <script src="scripts.js" onerror="alert('Failed to load scripts.js. Check file path or name.')"></script>
+    <script src="scripts.js" onerror="showToast('Failed to load scripts.js. Check file path or name.')"></script>
+    <!-- Toast notification script -->
+    <script>
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Example usage, replace with actual user feedback logic in scripts.js
+        // showToast('Record saved successfully!');
+
+        // Drawer mobile toggle
+        document.querySelector('.drawer-toggle').addEventListener('click', function() {
+            document.querySelector('.drawer').classList.toggle('open');
+        });
+
+        // Customisation: Show/hide table columns
+        document.querySelectorAll('.column-toggle').forEach(cb => {
+            cb.addEventListener('change', function() {
+                const col = this.dataset.column;
+                const checked = this.checked;
+                document.querySelectorAll(`th[data-sort="${col}"], td[data-column="${col}"]`).forEach(el => {
+                    el.style.display = checked ? '' : 'none';
+                });
+                showToast(checked ? `Showing ${col}` : `Hiding ${col}`);
+            });
+        });
+
+        // Customisation: Export format selection
+        document.querySelectorAll('input[name="export-format"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                showToast(`Export format set to ${this.value.toUpperCase()}`);
+            });
+        });
+    </script>
 </body>
 </html>
